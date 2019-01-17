@@ -1,2 +1,5 @@
 # docushow
-reflowing pdf documents using image processing and text layer (if available)
+
+recording mouse and voice interactions over documents (PDF, images for now).
+
+

@@ -11,18 +11,12 @@ var http = require('http');
 var https = require('https');
 var fs = require('fs');
 
-/**
- * Get port from environment and store in Express.
- */
-//var port = normalizePort(process.env.PORT || 8080);
-//app.set('port', port);
-
 var ports = [80,443];
+
 /**
  * Create HTTP server.
  */
 
-//var server = http.createServer(app);
 var redirectServer = http.createServer(app);
 
 redirectServer.listen(ports[0]);
