@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="initial-scale=1.0,width=device-width,user-scalable=no" />
+<link rel="shortcut icon" type="image/png" href="/favicon.png"/>
+
+<meta charset="utf-8">
+<title>DocRecorder</title>
+<link rel="stylesheet" href="/css/font-awesome.min.css">
+<link rel="stylesheet" href="/css/sweetalert.css">
+<link rel="stylesheet" href="/css/highlight.css">
+<style>
+
+:root {
+  --main-bg-color: #66f;
+  --main-active-color: #66d;
+  --main-active-dark-color: #333;
+  --top-bar-color: #666;
+}
+
+* {
+  font-family:'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.closeicon{font-size:20px;opacity:0.8;color:#ccc;cursor:pointer}
+.closeicon:hover{opacity:1.0;color:#444}
+.close{
+opacity:0.8;cursor:pointer;display:inline-block;font-size:20px;
+color:#ccc;position:absolute;
+right:8px;top:0px;padding:8px;
+}
+.close:hover{opacity:1.0;color:#444}
+
+body {
+  font-size:18px;
+  background-color: #999;
+  overflow-y:auto;
+  color:white;
+  margin:0;
+  overflow-x:hidden;
+  min-height:80vh;
+}
+
+select{font-size:16px}
+button{
+font-weight:400;
+color:white;font-size:16px;
+border-radius:3px;border:0;
+background-color:var(--main-bg-color);
+margin:4px;
+cursor:pointer;
+outline: none;
+padding: 6px 20px;
+}
+
+button:hover{background-color:var(--main-active-color)}
+button:disabled{color:#ccc;background-color:#666}
+input[type=number]{font-size:16px;width:48px;}
+
+#cursor{z-index:20000;display:none;position:absolute;background-color:#66f;opacity:0.8;width:32px;height:32px;border-radius:16px}
+#documentcontainer{
+  margin-top:80px;margin-bottom:64px;
+  width:100%;
+  margin-left:auto;margin-right:auto;
+}
+
+.page{
+margin-left:auto;margin-right:auto;
+margin-top:16px;
+margin-bottom:16px;
+max-width:900px;
+padding:0px;
+color:black;
+background-color:white;
+font-size:14px;
+position:relative;
+}
+.page img { max-width:100% }
+.page canvas { max-width:100% }
+#controls{
+  display:none;
+  white-space: nowrap;
+  padding:8px;
+  background-color:rgba(64,64,64,0.9);
+  width:100%;
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  position:fixed;z-index:20;top:0
+}
+#caption{
+  user-select: text;
+  -moz-user-select: text;
+  -webkit-user-select: text;
+  -ms-user-select: text;
+
+}
+
+.recording{background-color:red}
+.recording:hover{background-color:#e00}
+
+/*#playbutton{display:none}
+#savebutton{display:none}*/
+
+input[type=range] {
+  border-radius:6px;
+  outline: none;
+	background-color:#66f;
+  -webkit-appearance: none;
+  width: 240px;
+}
+
+input[type=range]::-moz-range-track {
+  background-color:#66f;
+  outline:none;border:0;
+}
+
+input[type=range]::-moz-range-thumb {
+  background-color: white;
+  border:0;
+  width:14px;height:14px;cursor:pointer;border-radius:7px;background:white;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  border: 0;
+  height: 12px;
+  width: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  background:white;
+}
+#controls a{text-decoration:none;color:white;font-weight:bold}
+.roundbutton{background-color:#66f;
+color:white;
+outline: none;cursor:pointer;
+padding:0px;
+margin:0px;
+display:inline-block;
+border-radius:22px;width:44px;height:44px;
+font-size:18px;
+text-align:center}
+.roundbutton:hover{background-color:#88f}
+.roundbutton span{margin:0;padding:13px}
+.fileicon{font-size:24px;background-color:#da251c;color:white;padding:6px;margin:4px;border-radius:5px}
+.fileicon.word{background-color:#2a5696}
+.fileicon.ppt{background-color:#d24625}
+.fileicon.text{background-color:#666}
+.fileicon.image{background-color:#ee2}
+.fileicon.white{cursor:pointer;background-color:#444}
+.fileicon.white:hover{background-color:#666}
+
+.roundbutton{padding:0px;font-size:18px;width:44px;height:44px;border-radius:22px;text-align:center}
+#recbutton{}
+
+.uploadfileslink{cursor:pointer;background-color:#66f;padding:8px;border-radius:5px;text-decoration:none;color:white}
+.uploadfileslink:hover{background-color:#88f}
+
+.linkbuttons{position:absolute;right:20px;top:14px;text-align:right}
+.linkbuttons button {padding:4px;text-align:center;font-size:20px;background-color:transparent;color:#ccc}
+.linkbuttons button:hover {color:#fff}
+
+@media only screen and (max-width : 420px)
+{
+  .roundbutton{padding:10px 12px}
+  #range{max-width:100%;}
+  #logo{display:none}
+  .linkbuttons{display:none}
+}
+
+
+</style>
+<script src="/js/highlight.min.js"></script>
+<script src="/js/rainbow-custom.min.js"></script>
+<script src="/js/text2canvas.js"></script>
+<script src="/js/compatibility.js"></script>
+<!--script src="/js/pdf.js"></script-->
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@2.0.943/build/pdf.min.js"></script>
+<script src="/js/load-image.all.min.js"></script>
+<script src="/js/sweetalert.min.js"></script>
+<!--script src="/js/recorder.min.js"></script-->
+<script src="/js/connected-component-labelling.js"></script>
+
+</head>
+<body>
+<div id='controls'>
+  <a id='logo' href="/create">DocRec</a>
+    <button class='roundbutton' id='recbutton' onclick='toggleRecording(this)'><span class="fa fa-microphone"></span></button>
+    <!--button class='roundbutton' id='pausebutton' onclick='pauseRecording(this)'><span class="fa fa-pause"></button-->
+    <!--button class='roundbutton' id='stopbutton' onclick='stopRecording(this)'><span class="fa fa-stop"></button-->
+    <!--button class='roundbutton' id='playbutton' onclick='togglePlay(this)'><span class="fa fa-play"></span></button-->
+    <button class='roundbutton' id='savebutton' onclick='promptSave(this)'><span class="fa fa-save"></span></button>
+
+    <input id="range" type="range" min="0" max="60" value="0"/>
+    <output for="range" id="reccaption">00:00</output>
+    <!--div class='linkbuttons'>
+      <button onclick='window.location="mailto:laurent@appblit.com?subject=DocuShow"'>Contact</button>
+      <button onclick='showHelp()'>Help</button>
+    </div-->
+</div>
+<div id='cursor'></div>
+<div id='documentcontainer'http://fontawesome.io/icon/stop></div>
+<input id='filepicker' type='file' style='display:none;color:red;' multiple/>
+<script>
+var PDFJS = pdfjsLib;
+
+//var MAX_FREE_PAGES = 10;
+var isPaused = false;
+var helpText = "<a class='uploadfileslink' onclick='filepicker.click()';return false>Upload files</a> or drag and drop files, paste URL or text";
+var PAGEW = 900;
+var scrollHeight = 0;
+var windowWidth = 0;
+var scrollTopPosition = 0;
+var duration = 1;
+var audio = null;
+var idx = 0;
+var recordingInterval = null;
+var startTime = null;
+var endTime = null;
+var audioBlob = null;
+var mouseCoords = [];
+var isRecording = false;
+var audioRecorder = null;
+
+function handleFileSelect(evt)
+{
+  swal.close();
+  var files = evt.target.files; // FileList object
+  var ok = true;
+  for (var i = 0, f; f = files[i]; i++)
+  {
+    ok &= addImage(files[i]);
+  }
+  if (!ok)
+    setTimeout(function(){swal('Ooops','Video files are not supported yet','error')},500);
+}
+
+filepicker.addEventListener('change',handleFileSelect,false);
+function setPasteZone(chat)
+{
+  chat.addEventListener('paste', function(event){
+    event.preventDefault();
+    handleData(event.clipboardData);
+  }, false);
+}
+
+function setDropZone(chat)
+{
+  chat.addEventListener('dragenter', function(event) {
+    event.preventDefault();
+  }, false);
+  chat.addEventListener('dragover', function(event) {
+    event.preventDefault();
+  }, false);
+  chat.addEventListener('dragleave', function(event) {
+    event.preventDefault();
+  }, false);
+  chat.addEventListener('drop', function(evt) {
+    evt.preventDefault();
+    handleData(evt.dataTransfer);
+  },false);
+}
+
+
+function windowResized()
+{
+  scrollHeight = document.body.scrollHeight;
+  windowWidth = window.innerWidth;
+}
+
+function mouseMove(e) {
+  if (isPaused)
+    return;
+  var now = new Date().getTime();
+  var delta = (now - startTime);
+  var x = e.pageX;
+  var y = e.pageY;
+  //var scrollHeight = document.body.scrollHeight;
+  windowResized();
+  x = (x * 1024) / windowWidth;
+  y = (y * 64000) / scrollHeight;
+  var scrollTopPosition = (window.scrollY * 64000) / scrollHeight;
+  x |= 1;
+  y |= 1;
+  scrollTopPosition |= 1;
+  mouseCoords.push(delta,x,y,scrollTopPosition);
+}
+
+var recordedAudioChunks = [];
+
+function handleAudioDataAvailable(event) {
+  if (event.data.size > 0) {
+    recordedAudioChunks.push(event.data);
+  } else {
+    // ...
+  }
+}
+
+function gotAudioStream(audiostream)
+{
+  console.log('started audioRecorder');
+  window.audioStream = audiostream;
+  audioRecorder = new MediaRecorder(audiostream,{mimeType:'audio/webm'});
+  audioRecorder.ondataavailable = handleAudioDataAvailable;
+  //audioRecorder.start(200);
+  startRecording();
+}
+
+function initRecorder() {
+  navigator.mediaDevices.getUserMedia({
+      audio: true
+  }).then(
+    gotAudioStream,
+    function(error) {
+      console.log('navigator.getUserMedia error: ', error);
+    }
+  );
+}
+
+function windowScrolled(e) {
+  if (isPaused)
+    return;
+  scrollTopPosition = document.body.scrollTop;
+  mouseMove(e);
+}
+
+function toggleRecording()
+{
+  isRecording = !isRecording;
+  if (isRecording)
+  {
+    if (audioRecorder === null)
+      initRecorder();
+    else
+      startRecording();
+  }
+  else
+  {
+    stopRecording();
+  }
+}
+
+function startRecording()
+{
+  if (document.querySelectorAll('.page').length === 0)
+  {
+    swal({title:'Ooops, no content!',text: helpText,html:true,showConfirmButton:false});
+    isRecording = false;
+    return;
+  }
+  if (audioBlob !== null)
+  {
+    swal(
+      {
+        title: "Are you sure?",
+        text: "This will erase your previous recording.",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#DD6B55",
+        confirmButtonText: "OK",
+        closeOnConfirm: true
+      },
+      function(){
+        isRecording = true;
+        startRecordingNow();
+      }
+    );
+    isRecording = false;
+    return;
+  }
+  //windowResized();
+  startRecordingNow();
+}
+
+function startRecordingNow()
+{
+  duration = 0;
+  audio = null;
+  audioBlob = null;
+  mouseCoords = [];
+  recbutton.classList.add('recording');
+
+  document.body.scrollTop = 0;
+  startTime = new Date().getTime();
+  recordingInterval = setInterval(showRecordingCaption,10);
+  document.addEventListener('mousemove',mouseMove,false);
+  window.addEventListener('scroll',windowScrolled,false);
+  if (!audioRecorder)
+  {
+    console.error('on audio recorder');
+    return;
+  }
+  if (audioRecorder.state === 'recording')
+  {
+    console.error('audio recorder is still recording');
+    return;
+  }
+  audioRecorder.start(200);
+}
+
+function pauseRecording()
+{
+  //if (!isRecording)
+  //  return;
+  isPaused = true;
+  //recbutton.classList.remove('recording');
+  audioRecorder.pause();
+  console.error('paused');
+}
+
+function resumeRecording()
+{
+  //if (!isRecording)
+  //  return;
+  isPaused = false;
+  //pausebutton.classList.add('pl');
+  audioRecorder.resume();
+  console.error('resumed');
+}
+
+function stopRecording()
+{
+  recbutton.classList.remove('recording');
+  isRecording = false;
+
+  clearInterval(recordingInterval);
+  document.removeEventListener('mousemove',mouseMove);
+  window.removeEventListener('scroll',windowScrolled);
+  if (!audioRecorder)
+    return;
+  if (audioRecorder.state !== 'recording')
+    return;
+
+  endTime = new Date().getTime();
+  duration = (endTime - startTime)/1000;
+  audioRecorder.stop();
+  
+  audioBlob = new Blob(recordedAudioChunks, { 'type' : 'audio/ogg; codecs=opus' });
+  //audio.src = window.URL.createObjectURL(audioBlob);
+}
+
+function promptSave()
+{
+  toggleRecording();
+  swal({
+    title: "Add a title?",
+    text: "(optional)",
+    html:true,
+    type:'input',
+    confirmButtonText:'Publish',
+    inputPlaceholder: "optional title",
+    showCancelButton: true,
+    },
+    function (title)
+    {
+      swal.close();
+      setTimeout(function(){
+        swal({
+          title: "Saving...",
+          text: "",
+          showConfirmButton: false
+        });
+        var s = document.querySelector('.sweet-alert');
+        if (s && s.querySelector('h2'))
+          s.querySelector('h2').innerHTML = 'Saving...';
+        saveRecording(title);
+      },500);
+    }
+  );
+}
+function mmss(msec) {
+  var hh = Math.floor(msec / 1000 / 60 / 60);
+  msec -= hh * 1000 * 60 * 60;
+  var mm = Math.floor(msec / 1000 / 60);
+  msec -= mm * 1000 * 60;
+  var ss = Math.floor(msec / 1000);
+  if (ss < 10)
+    ss = '0' + ss;
+  if (mm < 10)
+    mm = '0' + mm;
+  return mm + ':' + ss;
+}
+
+function showRecordingCaption()
+{
+  if (isPaused)
+    return;
+  var now = new Date().getTime();
+  var diff = now - startTime;
+  var percent = (diff * 100) / 60000;
+  range.value = percent;
+  document.querySelector('#reccaption').value = mmss(diff);
+}
+
+function handleNetworkError(err) {
+  console.error('handleNetworkError',err);
+  swal.close();
+  setTimeout(function(){
+    swal({title:'Ooops',title:'Network error, please try later',type:'error'});
+  },500);
+}
+
+var progress = null;
+function handleUploadProgress(evt) {
+  if (evt.lengthComputable)
+  {
+    var pc = Math.floor((evt.loaded / evt.total)*100);
+    if (!progress)
+    {
+      progress = document.createElement('progress');
+      progress.setAttribute('min',0);
+      progress.setAttribute('max',100);
+      var s = document.querySelector('.sweet-alert');
+      if (s)
+      {
+        var p = s.querySelector('p');
+        p.parentNode.replaceChild(progress,p);
+      }
+    }
+    progress.value = pc;
+  }
+}
+
+function handleSaved(e) {
+	if (this.status === 200) {
+    swal.close();
+		var r  = JSON.parse(this.response);
+		if (r.error) {
+		  setTimeout(function(){
+        swal({title:"Ooops!", text:"Error saving your doc", type: "error"});
+      },500);
+		}
+		else if (r.success) {
+      if (window.localStorage)
+        window.localStorage.freshdocushow = r.success;
+      window.location = '/v/' + r.success;
+		}
+	}
+}
+
+function sendRequest(url, data, f, arraybuffer) {
+	var xhr = new XMLHttpRequest();
+	xhr.onload = f.bind(xhr);
+	if (arraybuffer)
+	  xhr.responseType = "arraybuffer";
+	xhr.onerror = handleNetworkError;
+	xhr.open('POST', url, true);
+  xhr.upload.addEventListener("progress", handleUploadProgress, false);
+	xhr.send(data);
+}
+
+function getImage(canvas) {
+  var png = canvas.toDataURL();
+  var jpeg = canvas.toDataURL('image/jpeg',80);
+  if (png.length > jpeg.length)
+    return jpeg;
+  else
+    return png;
+}
+
+function saveRecording(mytitle) {
+  if (audioBlob === null)
+  {
+    setTimeout(saveRecording,1000);
+    return;
+  }
+  var formData = new FormData();
+  var mouseJSON = JSON.stringify(mouseCoords);
+
+  var mouseBlob = new Blob([mouseJSON], {type: "application/json"});
+  formData.append('strokes.json', mouseBlob);
+  formData.append('audio.ogg', audioBlob);
+  //if (password)
+  //  formData.append('password',password);
+  if (mytitle)
+    formData.append('title',mytitle);
+
+  var pagenumber = 0;
+  var canvases = document.querySelectorAll('canvas');
+  for (var i=0;i<canvases.length;i++)
+  {
+    pagenumber = i+1;
+    var canvas = canvases[i];
+    formData.append(pagenumber+'.jpg', dataURLtoBlob(getImage(canvas)));
+  }
+  sendRequest('/uploadPages', formData, handleSaved, false);
+}
+
+function dataURLtoBlob(dataurl) {
+  var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+      bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+  while(n--){
+      u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new Blob([u8arr], {type:mime});
+}
+
+function showHelp()
+{
+  swal({
+    title: "Get started!",
+    text: helpText,
+    showConfirmButton: false,
+    html: true
+  });
+}
+
+function nodes(n)
+{
+  var c = n.childNodes;
+  var r = [];
+  for (var i=0;i<c.length;i++)
+  {
+    r = r.concat(nodes(c[i]));
+  }
+  if (c.length === 0)
+  {
+    r.push({text:n.textContent,color:getComputedStyle(n.parentElement).color});
+  }
+  return r;
+}
+
+function esc (s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+}
+
+function addText(text)
+{
+  var div = document.createElement('pre');
+  div.style.display = 'none';
+  div.innerHTML = '<code>' + esc(text) + '</code>';
+  hljs.highlightBlock(div);
+  document.body.appendChild(div);
+  var r = nodes(div);
+  var canvases = makeHTMLCanvas(r,PAGEW,18,'Lucida Console');
+  for (var i=0;i<canvases.length;i++)
+  {
+    var added = addPage(canvases[i],true);
+    if (!added)
+      break;
+  }
+  div.parentElement.removeChild(div);
+
+  /*var canvases = makeCanvas(text,PAGEW,18,'Lucida Console');
+  for (var i=0;i<canvases.length;i++)
+  {
+    var added = addPage(canvases[i],true);
+    if (!added)
+      break;
+  }*/
+}
+
+function handlePDF(e) {
+	if (this.status == 200) {
+	  swal.close();
+    var arrayBuffer = this.response;
+    PDFJS.getDocument(arrayBuffer).then(showPDFNow);
+	}
+  else
+  {
+    if (progress)
+    {
+      var p = document.createElement('p');
+      progress.parentElement.replaceChild(p,progress);
+    }
+    swal('Ooops','Error converting your document to PDF','error');
+  }
+}
+
+function convertPDF(file)
+{
+  swal({title:'Converting...',text:'',type:'info'});
+  var formData = new FormData();
+  console.log('convertPDF file.name=',file.name);
+  formData.append('sampleFile', file, file.name);
+  sendRequest('/upload', formData, handlePDF,true);
+}
+
+function addImage(f) {
+  var type = f.type;
+  //console.log('type=',type);
+  if (type.length === 0 || type.indexOf('text') !== -1)
+  {
+    var r = new FileReader();
+    r.onload = function(e) { 
+      var contents = e.target.result;
+      addText(contents);
+    }
+    r.readAsText(f);
+    return true;
+  }
+  if (type.indexOf('text') !== -1 || type.indexOf('powerpoint') !== -1 || type.indexOf('doc') !== -1 || type.indexOf('word') !== -1)
+  {
+    setTimeout(function(){convertPDF(f)},500);
+    return true;
+  }
+  else if (type.indexOf('video') !== -1)
+  {
+    //addVideo(f);
+    return false;
+  }
+  else if (type.indexOf('pdf') !== -1)
+  {
+    var reader = new FileReader();
+    reader.onloadend = function () {
+      PDFJS.getDocument({ data : reader.result})
+        .then(function getPdfHelloWorld(pdfDocument) {
+          showPDFNow(pdfDocument);
+        });
+
+    };
+    reader.readAsArrayBuffer(f);
+    return true;
+  }
+  else
+  {       
+    var options = {maxWidth: PAGEW, minWidth: PAGEW, canvas: false};
+    loadImage.parseMetaData(f, function (data) {
+      if (data.exif) {
+        options.orientation = data.exif.get('Orientation')
+      }
+      loadImage(f,function(img){
+        var canvas = document.createElement('canvas');
+        //console.log(img,img.width,img.height);
+        canvas.width = img.width;
+        canvas.height = img.height;
+        var ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0,0,img.width,img.height);
+        ctx.drawImage(img,0,0,img.width,img.height);
+        addPage(canvas,true);
+      },options);
+    });
+    return true;
+  }
+}
+
+function getTextBoxes(image)
+{
+  var size = (image.width * image.height)|0;
+  var labels = new Uint32Array(size);
+  BlobExtractionLaurent(labels, image.data, image.width, image.height);
+  var boxes = BlobBounds(labels, image.width, image.height);
+  var maxBoxHeight = image.height/2;
+  var maxBoxWidth = image.width/2;
+  var res = [];
+  for (var i=0;i<boxes.length;i++)
+  {
+    var b = boxes[i];
+    if (b && b.l < image.width * image.height)
+    {
+      if (b.x2-b.x1<=maxBoxWidth && b.y2-b.y1<=maxBoxHeight)// && (b.x2-b.x1>minBoxWidth || b.y2-b.y1>minBoxHeight))
+      {
+        var obj = {x1:b.x1,y1:b.y1,x2:b.x2,y2:b.y2}; 
+        res.push(obj);
+      }
+    }
+  }
+  return res;
+}
+
+function binarize(target,data,w,h,threshold,whitetext)
+{
+	var i = 0, j = 1;
+	var i4 = 0;
+	var n = w*h;//(data.length)>>2;
+	var foreground = 255;
+	var background = 0;
+	if (whitetext)
+	{
+		foreground = 0;
+		background = 255;
+	}
+	while (i < n) {
+		var r = data[i4],
+    g = data[i4 + 1],
+    b = data[i4 + 2],
+    gray = (r * 299/1000 + g * 587/1000 + b * 114/1000 ) | 0,
+    color = background;
+		if (gray <= threshold)
+			color = foreground;
+		target[i4] = color;
+		target[i4+1] = color;
+		target[i4+2] = color;
+		target[i4+3] = 0xFF;
+		++i;
+		i4 += 4;
+	}
+}
+
+var fast_binarize = function (target,data,w,h)
+{
+  var i = 0, j = 1;
+  var i4 = 0;
+  var average1 = (255 + data[i4] + data[i4+1] + data[i4+2]) >> 2;
+  var average2;
+  var n = (data.length-4)>>2;
+  var j4 = j<<2;
+
+
+  while (i < n) {
+    average2 = (255 + data[j4] + data[j4+1] + data[j4+2]) >> 2;
+    var diff = (Math.abs(average1 - average2) > 0x15) ? 0xFF:0x00;
+    average1 = average2;
+    target[i4] = diff;
+    target[i4+1] = diff;
+    target[i4+2] = diff;
+    target[i4+3] = 0xFF;
+    ++i;
+    i4 += 4;
+    j4 += 4;
+  }
+};
+
+function getBackgroundColor(canvas)
+{
+  var c = document.createElement('canvas');
+  c.width = 256;
+  c.height = 256;
+
+  var ctx = c.getContext('2d');
+  ctx.drawImage(canvas,0,0,256,256);
+  var mask = ctx.createImageData(256,256);
+  var imgData = ctx.getImageData(0,0,256,256);
+  fast_binarize(mask.data,imgData.data,256,256);
+
+	var i4 = 0;
+	var w = imgData.width;
+	var h = imgData.height;
+	var data = imgData.data;
+	var maskdata = mask.data;
+	var n = w*h;
+	var BIN_SIZE = 0;
+	var histogram = new Uint16Array(256 >> BIN_SIZE);
+	//console.log(histogram);
+	var nbackground = 0;
+	for (var i=0;i<n;i++)
+	{
+	  if (maskdata[i4] === 0)
+	  {
+	    nbackground++;
+      var r = data[i4];
+      var g = data[i4 + 1];
+      var b = data[i4 + 2];
+      var gray = (r * 299/1000 + g * 587/1000 + b * 114/1000 );
+      //var gray = (r+b+g)/3;
+      //gray = data[i4];
+      maskdata[i4] = gray;
+      maskdata[i4+1] = gray;
+      maskdata[i4+2] = gray;
+      gray = gray >> BIN_SIZE;
+      if (gray < 0)
+        gray = 0;
+      else if (gray > 255)
+        gray = 255;
+      histogram[gray] += 1;
+    }
+    else
+    {
+      maskdata[i4] = 0;
+      maskdata[i4+1] = 0;
+      maskdata[i4+2] = 0;
+    }
+		i4 += 4;
+	}
+	//console.log(nbackground*100/n,histogram);
+	var max = 0;
+	var idx = 0;
+	for (var i=0;i<histogram.length;i++)
+	{
+	  if (histogram[i] > max)
+	  {
+	    max = histogram[i];
+	    idx = i;
+	  }
+	}
+	//console.log(max,idx);
+	return idx << BIN_SIZE;
+}
+
+var CV = {};
+CV.dilate = function(imageSrc, imageDst, w, h){
+  return CV.applyKernel(imageSrc, imageDst, w, h, Math.max);
+};
+
+
+/*CV.erode = function(imageSrc, imageDst, w, h){
+  return CV.applyKernel(imageSrc, imageDst, w, h, Math.min);
+};*/
+    
+CV.applyKernel = function(src, dst, width, height, fn){
+  var offsets = [-width - 1, -width, -width + 1, -1, 1, width - 1, width, width + 1],
+      klen = offsets.length,
+      pos = 0, value, i, j, k;
+  
+  for (i = 0; i < width; ++ i){
+    dst[pos ++] = 0;
+  }
+
+  for (i = 2; i < height; ++ i){
+    dst[pos ++] = 0;
+
+    for (j = 2; j < width; ++ j){
+      value = src[pos];
+      
+      for (k = 0; k < klen; ++ k){
+        value = fn(value, src[ pos + offsets[k] ] );
+      }
+      
+      dst[pos ++] = value;
+    }
+    
+    dst[pos ++] = 0;
+  }
+
+  for (i = 0; i < width; ++ i){
+    dst[pos ++] = 0;
+  }
+
+  //imageDst.width = imageSrc.width;
+  //imageDst.height = imageSrc.height;
+  
+  //return imageDst;
+  return dst;
+};
+
+function imgDataToUint(imgdata) {
+  var w = imgdata.width;
+  var h = imgdata.height;
+  var n = w * h * 4;
+  var dst = new Uint8ClampedArray(w*h);
+  var idx = 0;
+  var src = imgdata.data;
+  for (var i=0;i<n;i+=4)
+    dst[idx++] = src[i];
+  return dst;
+}
+
+function intToImgData(src,imgdata) {
+  var w = imgdata.width;
+  var h = imgdata.height;
+  var n = w * h;
+  var idx = 0;
+  var dst = imgdata.data;
+  for (var i=0;i<n;i++)
+  {
+    dst[idx] = src[i];
+    dst[idx+1] = src[i];
+    dst[idx+2] = src[i];
+    dst[idx+3] = 0xFF;
+    idx += 4;
+  }
+}
+
+function processImageData(canvas)
+{
+  var scale = 1.0;
+  var w = (scale * canvas.width) | 1;
+  var h = (scale * canvas.height) | 1;
+  var newc = document.createElement('canvas');
+  newc.width = w;
+  newc.height = h;
+  var nctx = newc.getContext('2d');
+  nctx.drawImage(canvas,0,0,w,h);
+  var imgData = nctx.getImageData(0,0,w,h);
+  var binary = nctx.createImageData(w, h);
+  var background = getBackgroundColor(canvas);
+  console.log('background=',background);
+  if (background < 60)
+    binarize(binary.data,imgData.data,w,h,background+120,true);
+  else
+    binarize(binary.data,imgData.data,w,h,165,false);
+  
+  //var bin = imgDataToUint(binary);
+  //var dstbin = new Uint8ClampedArray(w*h);
+  //CV.dilate(bin,dstbin,w,h);//dilate
+  //CV.applyKernel(bin, dstbin, w, h, Math.min);//erode
+  //intToImgData(dstbin,binary);
+	var textBoxes = getTextBoxes(binary);
+	nctx.putImageData(binary,0,0);
+	nctx.fillStyle = 'yellow';
+	for (var i=0;i<textBoxes.length;i++)
+	{
+	  var b = textBoxes[i];
+	  nctx.fillRect(b.x1,b.y1,b.x2-b.x1,b.y2-b.y1);
+	}
+	canvas.dataset.boxes = JSON.stringify(textBoxes);
+	document.body.appendChild(newc);
+}
+
+function addPage(canvas)
+{
+  /*var existingpages = document.querySelectorAll('.page').length;
+  if (existingpages + 1 > MAX_FREE_PAGES)
+  {
+    setTimeout(function () {errorPagesReached();},200);
+    return false;
+  }*/
+  if (canvas.width !== PAGEW)
+  {
+    var c = document.createElement('canvas');
+    var h = ((canvas.height * PAGEW) / canvas.width)|0;
+    c.width = PAGEW;
+    c.height = h;
+    c.getContext('2d').drawImage(canvas,0,0,PAGEW,h);
+    canvas = c;
+  }
+  var p = document.createElement('div');
+  p.className = 'page';
+  p.appendChild(canvas);
+  
+  //processImageData(canvas);
+  var del = document.createElement('div');
+  del.innerHTML = '<span class="fa fa-close"></span>';
+  del.addEventListener('click', function (evt) { deletePage(this.parentElement)}, false);
+  del.className = 'close';
+  p.appendChild(del);
+  documentcontainer.appendChild(p);
+  return true;
+}
+
+function deletePage(pagecontainer)
+{
+  var canvas = pagecontainer.querySelector('canvas');
+  pagecontainer.parentElement.removeChild(pagecontainer);
+}
+
+function errorPagesReached()
+{
+  swal({title:'Maximum ' + MAX_FREE_PAGES + ' pages',text:'You can remove some pages with <span class="fa fa-close closeicon"></span><BR><BR><a href="mailto:laurent@appblit.com">Contact us</a> for a PRO account',html:true,type:'info'});
+}
+
+function showPDFNow(pdf)
+{
+  //var existingpages = document.querySelectorAll('.page').length;
+  var npages = pdf.numPages;
+
+  function nextPage(i) {
+    pdf.getPage(i).then(function(page) {
+      var viewport = page.getViewport(2.5);
+      var canvas = document.createElement('canvas');
+      
+      var w = viewport.width|0;
+      var h = viewport.height|0;
+
+      canvas.width = w;
+      canvas.height = h;
+      var context = canvas.getContext('2d');
+
+      var renderContext = {
+      canvasContext: context,
+      viewport: viewport
+      };
+      page.render(renderContext).then(function(){ var added = addPage(canvas); if (added && i<npages) nextPage(i+1); });
+    });
+  }
+  
+  nextPage(1);
+}
+
+function handleData(dataTransfer) {
+
+  swal.close();
+  var urldata = null;
+  var textdata = null;
+  for (var i=0;i<dataTransfer.types.length;i++)
+  {
+    var datatype = dataTransfer.types[i];
+    if (datatype.indexOf('uri-list') !== -1)
+      urldata = dataTransfer.getData(datatype); 
+    if (datatype.indexOf('plain') !== -1)
+      textdata = dataTransfer.getData(datatype); 
+  }
+  if (textdata && !urldata)
+  {
+    try {
+      var url = new URL(textdata);
+      convertUrl(url);
+      return;
+    } catch (e) {};
+  }
+  if (urldata && urldata.length > 0)
+  {
+    convertUrl(urldata);
+    //swal({title:'Ooops',text:'URLs not supported now',type:'info'});
+    return;
+  }
+  else if (textdata && textdata.length > 0)
+  {
+    addText(textdata);
+  }
+  else
+  {
+    var files = dataTransfer.files;
+    //console.log('n files=',files.length);
+    var ok = true;
+    for (var i = 0; i < files.length; i++) {
+      ok &= addImage(files[i]);
+    }
+    if (!ok)
+      setTimeout(function(){swal('Ooops','Video files are not supported yet','error')},500);
+  }
+}
+
+function handleURL(e) {
+  swal.close();
+	if (this.status == 200) {
+	  var type = this.response.type;
+	  if (type.indexOf('image') !== -1)
+	  {
+	    var image = new Image();
+	    image.onload = function () {
+	      var canvas = document.createElement('canvas');
+	      canvas.width = this.naturalWidth;
+	      canvas.height = this.naturalHeight;
+	      canvas.getContext('2d').drawImage(this,0,0);
+	      addPage(canvas);
+	    };
+	    var url = URL.createObjectURL( this.response );
+	    image.src = url;
+	  }
+	  else
+	  {
+      var fileReader = new FileReader();
+      fileReader.onload = function() {
+          var arrayBuffer = this.result;
+          PDFJS.getDocument(arrayBuffer).then(showPDFNow);
+      };
+      fileReader.readAsArrayBuffer(this.response);
+    }
+	}
+  else
+  {
+    setTimeout(function(){
+      swal('Ooops','Error getting this URL','error');
+    },500);
+  }
+}
+
+function sendGetRequest(url, f) {
+	var xhr = new XMLHttpRequest();
+  xhr.responseType = "blob";//blob to get type later
+	xhr.onload = f.bind(xhr);
+	xhr.onerror = handleNetworkError;
+	xhr.open('GET', url, true);
+	xhr.send(null);
+}
+
+function convertUrl(url)
+{
+  setTimeout(function(){swal({title:'Importing...',text:'<a target="_blank" href="' + url + '">'+url+'</a>',html:true,showConfirmButton:false});},500);
+  sendGetRequest('/converturl?url=' + encodeURIComponent(url), handleURL);
+}
+
+function togglePause(elem)
+{
+  isPaused = !isPaused;
+  if (isPaused)
+    pauseRecording();
+  else
+    resumeRecording();
+}
+
+/*if (Recorder.isRecordingSupported() === undefined)
+{
+  sweetAlert('Ooops','Unfortunately, your browser is not setup to record audio.\nPlease connect a webcam or microphone and try again with Chrome or Firefox.','error');
+}
+else*/
+{
+  controls.style.display = 'block';
+  showHelp();
+  setDropZone(document.body);
+  setPasteZone(document.body);
+  document.body.addEventListener('keydown', function (e) {
+    if (isRecording && e.which === 32)
+    {
+      if (isPaused)
+        resumeRecording();
+      else
+        pauseRecording();
+    }
+  });
+}
+</script>
+</body>
+</html>

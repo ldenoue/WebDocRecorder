@@ -1,0 +1,144 @@
+<html>
+<head>
+<title>DocuShow View</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="DocuShow">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="stylesheet" href="/css/font-awesome.min.css">
+<link rel="stylesheet" type="text/css" href="/css/sweetalert.css">
+<style>
+
+:root {
+  --main-bg-color: #66f;
+  --main-active-color: #66d;
+  --main-active-dark-color: #333;
+  --top-bar-color: #666;
+}
+
+* {
+  font-family:'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.close{
+opacity:0.8;cursor:pointer;display:inline-block;font-size:20px;
+color:#ccc;position:absolute;
+right:8px;top:0px;padding:8px;
+}
+.close:hover{opacity:1.0;color:#444}
+
+body {
+  font-size:18px;
+  background: #999;
+  overflow-x:auto;
+  color:white;
+  margin:0;
+  overflow-x:hidden;
+}
+
+select{font-size:16px}
+button{
+font-weight:400;
+color:white;font-size:16px;
+border-radius:3px;border:0;
+background-color:var(--main-bg-color);
+margin:4px;
+cursor:pointer;
+outline: none;
+}
+
+button:hover{background-color:var(--main-active-color)}
+button:disabled{color:#ccc;background-color:#666}
+input[type=number]{font-size:16px;width:48px;}
+
+#cursor{z-index:20000;display:block;position:absolute;background-color:#66f;
+opacity:0.8;left:-200px;top:-200px;padding-left:10px;padding-top:6px;
+min-width:32px;min-height:32px;color:white;font-size:20px;
+border-radius:16px;box-sizing:border-box;border:0px solid white}
+#documentcontainer{
+  margin-top:80px;margin-bottom:64px;
+  max-width:800px;
+  margin-left:auto;margin-right:auto;
+}
+
+.page{
+margin-left:auto;margin-right:auto;
+margin-top:16px;
+margin-bottom:16px;
+max-width:90%;
+padding:8px;
+/*border-radius:5px;*/
+/*box-shadow:0px 0px 3px #444;*/
+color:black;
+background-color:white;
+font-size:14pt;
+position:relative;
+}
+.page img { max-width:100% }
+.page canvas { max-width:100% }
+#controls{
+  white-space: nowrap;
+  padding:8px;
+  background-color:#444;width:100%;
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  position:fixed;z-index:30000;top:0;
+}
+
+/*#createbutton{position:absolute;top:9px;right:20px;}
+#createbutton:hover{color:white}*/
+#deletebutton{background-color:red}
+.recording{background-color:red}
+.recording:hover{background-color:#e00}
+#progress{width:240px}
+
+input[type=range] {
+  border-radius:6px;
+  outline: none;
+	background-color:#66f;
+  -webkit-appearance: none;
+  width: 240px;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  border: 0;
+  height: 12px;
+  width: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  background:white;
+}
+#playbutton{font-size:18px}
+#controls a{text-decoration:none;color:white;font-weight:bold}
+
+@media only screen and (max-width : 320px)
+{
+  #range{max-width:190px;}
+  #playbutton{padding:10px 12px}
+  #logo{display:none}
+}
+
+</style>
+<script src="/js/sweetalert.min.js"></script>
+<script src="/js/recorder.min.js"></script>
+</head>
+<body>
+<div id='controls'>
+  <a id='logo' href="/">DocuShow</a>
+  <div style='width:calc(100vw - 120px);text-align:right;display:inline-block'>
+  <button id='createbutton' onclick='window.location="/"'>CREATE</button>
+  </div>
+</div>
+<div id='cursor'></div>
+<div id='documentcontainer'>
+</div>
+<script>
+swal('Nothing here','Perhaps the author deleted this docushow or it expired','error');
+</script>
+</body>
+</html>
