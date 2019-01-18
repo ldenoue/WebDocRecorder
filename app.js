@@ -26,7 +26,14 @@ createFolderIfNotExist('/public/uploads');
 function createFolderIfNotExist(relativePath)
 {
   var outdir = __dirname + relativePath;
-  fs.existsSync(outdir) || fs.mkdirSync(outdir);
+  try {
+    fs.existsSync(outdir,function () {}) || fs.mkdirSync(outdir,function(){});
+    return true;
+  }
+  catch (ecreatedir)
+  {
+    return false;
+  }
 }
 
 var app = express();
@@ -49,7 +56,7 @@ app.engine('html',cons.swig);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'html');
 
-app.use(logger('dev'));
+//app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -76,7 +83,6 @@ function getMouseCoords(room,callback) {
 
 app.get('/v/:room', function(req, res) {
   var room = req.params.room;
-  console.log('room=', room);
   list(room, function (err, data) {
     if (err)
       return res.render('nothere.html');
@@ -121,12 +127,15 @@ app.post('/uploadpages', function(req, res) {
   //console.log('body=',req.body);
   var password = req.body.password;
   room = createRoom();
-  console.log('creating new room',room);
-
+  
   var outdir = __dirname+ '/public/uploads/' + room + '/';
-  fs.existsSync(outdir) || fs.mkdirSync(outdir);
+  var created = createFolderIfNotExist('/public/uploads/' + room + '/');
+  if (!created)
+  {
+    return res.status(200).json({error:'error creating room on server'});
+  }
 
-  fs.writeFile(outdir + 'meta.json', JSON.stringify({user:req.user,title:title,password:password}), 'utf-8', null);
+  fs.writeFile(outdir + 'meta.json', JSON.stringify({user:req.user,title:title,password:password}), 'utf-8', function (){});
 
   var done = false;
   for (var i=0;i<n;i++)
@@ -137,7 +146,7 @@ app.post('/uploadpages', function(req, res) {
     sampleFile.i = i;
     sampleFile.mv(filename, function(err) {
       if (err) {
-        return res.status(500).json({error:err});
+        return res.status(200).json({error:err});
       }
       if (!done && sampleFile.i >= n-1)
       {
@@ -161,7 +170,6 @@ function list(room,callback)
         return callback('not a valid room');//data = {};
       else
       {
-        console.log('contents=',contents);
         data = JSON.parse(contents);
       }
       
@@ -178,9 +186,6 @@ function list(room,callback)
           {
             var imagearray = filearray.filter(function(file) { return file.substr(-4) === '.jpg'; })
             var oggarray = filearray.filter(function(file) { return file.substr(-4) === '.ogg'; })
-            /*var idx = filearray.indexOf('meta.json');
-            if (idx >= 0)
-              filearray.splice(idx,1);*/
             data.files = imagearray.sort(function (a,b) { return +a.split('.')[0] - +b.split('.')[0]});
             data.ogg = oggarray;
             //console.log(data.files);
@@ -215,10 +220,6 @@ app.use(function(req, res, next) {
   next(err);
 });
 
-
-
-// error handlers
-
 // development error handler
 // will print stacktrace
 if (app.get('env') === 'development') {
@@ -240,6 +241,5 @@ app.use(function(err, req, res) {
     error: {}
   });
 });
-
 
 module.exports = app;

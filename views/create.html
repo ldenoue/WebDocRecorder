@@ -59,7 +59,17 @@ button:hover{background-color:var(--main-active-color)}
 button:disabled{color:#ccc;background-color:#666}
 input[type=number]{font-size:16px;width:48px;}
 
-#cursor{z-index:20000;display:none;position:absolute;background-color:#66f;opacity:0.8;width:32px;height:32px;border-radius:16px}
+#cursor{
+  pointer-events:none;/*don't trap click, used only as user feedback when recording*/
+  z-index:20000;
+  display:none;
+  position:absolute;
+  background-color:#66f;
+  opacity:0.8;width:32px;
+  height:32px;
+  border-radius:16px
+}
+
 #documentcontainer{
   margin-top:80px;margin-bottom:64px;
   width:100%;
@@ -102,9 +112,6 @@ position:relative;
 .recording{background-color:red}
 .recording:hover{background-color:#e00}
 
-/*#playbutton{display:none}
-#savebutton{display:none}*/
-
 input[type=range] {
   border-radius:6px;
   outline: none;
@@ -133,15 +140,17 @@ input[type=range]::-webkit-slider-thumb {
   background:white;
 }
 #controls a{text-decoration:none;color:white;font-weight:bold}
-.roundbutton{background-color:#66f;
-color:white;
-outline: none;cursor:pointer;
-padding:0px;
-margin:0px;
-display:inline-block;
-border-radius:22px;width:44px;height:44px;
-font-size:18px;
-text-align:center}
+.roundbutton{
+  background-color:#66f;
+  color:white;
+  outline: none;cursor:pointer;
+  padding:0px;
+  margin:0px;
+  display:inline-block;
+  border-radius:22px;width:44px;height:44px;
+  font-size:18px;
+  text-align:center
+}
 .roundbutton:hover{background-color:#88f}
 .roundbutton span{margin:0;padding:13px}
 .fileicon{font-size:24px;background-color:#da251c;color:white;padding:6px;margin:4px;border-radius:5px}
@@ -162,6 +171,7 @@ text-align:center}
 .linkbuttons button {padding:4px;text-align:center;font-size:20px;background-color:transparent;color:#ccc}
 .linkbuttons button:hover {color:#fff}
 
+#filepicker{display:none;}
 @media only screen and (max-width : 420px)
 {
   .roundbutton{padding:10px 12px}
@@ -169,44 +179,29 @@ text-align:center}
   #logo{display:none}
   .linkbuttons{display:none}
 }
-
-
 </style>
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist/build/pdf.min.js"></script>
+<!--script src="/js/connected-component-labelling.js"></script-->
 <script src="/js/highlight.min.js"></script>
-<script src="/js/rainbow-custom.min.js"></script>
-<script src="/js/text2canvas.js"></script>
-<script src="/js/compatibility.js"></script>
-<!--script src="/js/pdf.js"></script-->
-<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@2.0.943/build/pdf.min.js"></script>
 <script src="/js/load-image.all.min.js"></script>
 <script src="/js/sweetalert.min.js"></script>
-<!--script src="/js/recorder.min.js"></script-->
-<script src="/js/connected-component-labelling.js"></script>
-
+<script src="/js/text2canvas.js"></script>
 </head>
 <body>
 <div id='controls'>
-  <a id='logo' href="/create">DocRec</a>
+  <a id='logo' href="/create">DocRecorder</a>
     <button class='roundbutton' id='recbutton' onclick='toggleRecording(this)'><span class="fa fa-microphone"></span></button>
-    <!--button class='roundbutton' id='pausebutton' onclick='pauseRecording(this)'><span class="fa fa-pause"></button-->
-    <!--button class='roundbutton' id='stopbutton' onclick='stopRecording(this)'><span class="fa fa-stop"></button-->
-    <!--button class='roundbutton' id='playbutton' onclick='togglePlay(this)'><span class="fa fa-play"></span></button-->
     <button class='roundbutton' id='savebutton' onclick='promptSave(this)'><span class="fa fa-save"></span></button>
 
     <input id="range" type="range" min="0" max="60" value="0"/>
     <output for="range" id="reccaption">00:00</output>
-    <!--div class='linkbuttons'>
-      <button onclick='window.location="mailto:laurent@appblit.com?subject=DocuShow"'>Contact</button>
-      <button onclick='showHelp()'>Help</button>
-    </div-->
 </div>
+<div id='documentcontainer'></div>
+<input id='filepicker' type='file' multiple/>
 <div id='cursor'></div>
-<div id='documentcontainer'http://fontawesome.io/icon/stop></div>
-<input id='filepicker' type='file' style='display:none;color:red;' multiple/>
 <script>
 var PDFJS = pdfjsLib;
-
-//var MAX_FREE_PAGES = 10;
+var progress = null;
 var isPaused = false;
 var helpText = "<a class='uploadfileslink' onclick='filepicker.click()';return false>Upload files</a> or drag and drop files, paste URL or text";
 var PAGEW = 900;
@@ -285,6 +280,9 @@ function mouseMove(e) {
   x |= 1;
   y |= 1;
   scrollTopPosition |= 1;
+  cursor.style.display = 'block';
+  cursor.style.left = (e.pageX-16) + 'px';
+  cursor.style.top = (e.pageY-16) + 'px';
   mouseCoords.push(delta,x,y,scrollTopPosition);
 }
 
@@ -502,7 +500,6 @@ function handleNetworkError(err) {
   },500);
 }
 
-var progress = null;
 function handleUploadProgress(evt) {
   if (evt.lengthComputable)
   {
@@ -528,8 +525,9 @@ function handleSaved(e) {
     swal.close();
 		var r  = JSON.parse(this.response);
 		if (r.error) {
+		  console.log('saving error',r.error);
 		  setTimeout(function(){
-        swal({title:"Ooops!", text:"Error saving your doc", type: "error"});
+		    swal('Ooops','Error saving your doc','error');
       },500);
 		}
 		else if (r.success) {
@@ -642,14 +640,6 @@ function addText(text)
       break;
   }
   div.parentElement.removeChild(div);
-
-  /*var canvases = makeCanvas(text,PAGEW,18,'Lucida Console');
-  for (var i=0;i<canvases.length;i++)
-  {
-    var added = addPage(canvases[i],true);
-    if (!added)
-      break;
-  }*/
 }
 
 function handlePDF(e) {
@@ -765,7 +755,7 @@ function binarize(target,data,w,h,threshold,whitetext)
 {
 	var i = 0, j = 1;
 	var i4 = 0;
-	var n = w*h;//(data.length)>>2;
+	var n = w*h;
 	var foreground = 255;
 	var background = 0;
 	if (whitetext)
@@ -845,8 +835,6 @@ function getBackgroundColor(canvas)
       var g = data[i4 + 1];
       var b = data[i4 + 2];
       var gray = (r * 299/1000 + g * 587/1000 + b * 114/1000 );
-      //var gray = (r+b+g)/3;
-      //gray = data[i4];
       maskdata[i4] = gray;
       maskdata[i4+1] = gray;
       maskdata[i4+2] = gray;
@@ -865,7 +853,6 @@ function getBackgroundColor(canvas)
     }
 		i4 += 4;
 	}
-	//console.log(nbackground*100/n,histogram);
 	var max = 0;
 	var idx = 0;
 	for (var i=0;i<histogram.length;i++)
@@ -878,80 +865,6 @@ function getBackgroundColor(canvas)
 	}
 	//console.log(max,idx);
 	return idx << BIN_SIZE;
-}
-
-var CV = {};
-CV.dilate = function(imageSrc, imageDst, w, h){
-  return CV.applyKernel(imageSrc, imageDst, w, h, Math.max);
-};
-
-
-/*CV.erode = function(imageSrc, imageDst, w, h){
-  return CV.applyKernel(imageSrc, imageDst, w, h, Math.min);
-};*/
-    
-CV.applyKernel = function(src, dst, width, height, fn){
-  var offsets = [-width - 1, -width, -width + 1, -1, 1, width - 1, width, width + 1],
-      klen = offsets.length,
-      pos = 0, value, i, j, k;
-  
-  for (i = 0; i < width; ++ i){
-    dst[pos ++] = 0;
-  }
-
-  for (i = 2; i < height; ++ i){
-    dst[pos ++] = 0;
-
-    for (j = 2; j < width; ++ j){
-      value = src[pos];
-      
-      for (k = 0; k < klen; ++ k){
-        value = fn(value, src[ pos + offsets[k] ] );
-      }
-      
-      dst[pos ++] = value;
-    }
-    
-    dst[pos ++] = 0;
-  }
-
-  for (i = 0; i < width; ++ i){
-    dst[pos ++] = 0;
-  }
-
-  //imageDst.width = imageSrc.width;
-  //imageDst.height = imageSrc.height;
-  
-  //return imageDst;
-  return dst;
-};
-
-function imgDataToUint(imgdata) {
-  var w = imgdata.width;
-  var h = imgdata.height;
-  var n = w * h * 4;
-  var dst = new Uint8ClampedArray(w*h);
-  var idx = 0;
-  var src = imgdata.data;
-  for (var i=0;i<n;i+=4)
-    dst[idx++] = src[i];
-  return dst;
-}
-
-function intToImgData(src,imgdata) {
-  var w = imgdata.width;
-  var h = imgdata.height;
-  var n = w * h;
-  var idx = 0;
-  var dst = imgdata.data;
-  for (var i=0;i<n;i++)
-  {
-    dst[idx] = src[i];
-    dst[idx+1] = src[i];
-    dst[idx+2] = src[i];
-    dst[idx+3] = 0xFF;
-    idx += 4;
-  }
 }
 
 function processImageData(canvas)
@@ -973,11 +886,6 @@ function processImageData(canvas)
   else
     binarize(binary.data,imgData.data,w,h,165,false);
   
-  //var bin = imgDataToUint(binary);
-  //var dstbin = new Uint8ClampedArray(w*h);
-  //CV.dilate(bin,dstbin,w,h);//dilate
-  //CV.applyKernel(bin, dstbin, w, h, Math.min);//erode
-  //intToImgData(dstbin,binary);
 	var textBoxes = getTextBoxes(binary);
 	nctx.putImageData(binary,0,0);
 	nctx.fillStyle = 'yellow';
@@ -992,12 +900,6 @@ function processImageData(canvas)
 
 function addPage(canvas)
 {
-  /*var existingpages = document.querySelectorAll('.page').length;
-  if (existingpages + 1 > MAX_FREE_PAGES)
-  {
-    setTimeout(function () {errorPagesReached();},200);
-    return false;
-  }*/
   if (canvas.width !== PAGEW)
   {
     var c = document.createElement('canvas');
@@ -1012,6 +914,7 @@ function addPage(canvas)
   p.appendChild(canvas);
   
   //processImageData(canvas);
+
   var del = document.createElement('div');
   del.innerHTML = '<span class="fa fa-close"></span>';
   del.addEventListener('click', function (evt) { deletePage(this.parentElement)}, false);
@@ -1027,14 +930,8 @@ function deletePage(pagecontainer)
   pagecontainer.parentElement.removeChild(pagecontainer);
 }
 
-function errorPagesReached()
-{
-  swal({title:'Maximum ' + MAX_FREE_PAGES + ' pages',text:'You can remove some pages with <span class="fa fa-close closeicon"></span><BR><BR><a href="mailto:laurent@appblit.com">Contact us</a> for a PRO account',html:true,type:'info'});
-}
-
 function showPDFNow(pdf)
 {
-  //var existingpages = document.querySelectorAll('.page').length;
   var npages = pdf.numPages;
 
   function nextPage(i) {
@@ -1084,7 +981,6 @@ function handleData(dataTransfer) {
   if (urldata && urldata.length > 0)
   {
     convertUrl(urldata);
-    //swal({title:'Ooops',text:'URLs not supported now',type:'info'});
     return;
   }
   else if (textdata && textdata.length > 0)
@@ -1094,7 +990,6 @@ function handleData(dataTransfer) {
   else
   {
     var files = dataTransfer.files;
-    //console.log('n files=',files.length);
     var ok = true;
     for (var i = 0; i < files.length; i++) {
       ok &= addImage(files[i]);
@@ -1141,7 +1036,7 @@ function handleURL(e) {
 
 function sendGetRequest(url, f) {
 	var xhr = new XMLHttpRequest();
-  xhr.responseType = "blob";//blob to get type later
+  xhr.responseType = "blob";
 	xhr.onload = f.bind(xhr);
 	xhr.onerror = handleNetworkError;
 	xhr.open('GET', url, true);
@@ -1150,8 +1045,7 @@ function sendGetRequest(url, f) {
 
 function convertUrl(url)
 {
-  setTimeout(function(){swal({title:'Importing...',text:'<a target="_blank" href="' + url + '">'+url+'</a>',html:true,showConfirmButton:false});},500);
-  sendGetRequest('/converturl?url=' + encodeURIComponent(url), handleURL);
+  setTimeout(function(){swal('Ooops','Document format is not supported yet. Try text, images and PDFs','error')},500);
 }
 
 function togglePause(elem)
@@ -1163,26 +1057,20 @@ function togglePause(elem)
     resumeRecording();
 }
 
-/*if (Recorder.isRecordingSupported() === undefined)
-{
-  sweetAlert('Ooops','Unfortunately, your browser is not setup to record audio.\nPlease connect a webcam or microphone and try again with Chrome or Firefox.','error');
-}
-else*/
-{
-  controls.style.display = 'block';
-  showHelp();
-  setDropZone(document.body);
-  setPasteZone(document.body);
-  document.body.addEventListener('keydown', function (e) {
-    if (isRecording && e.which === 32)
-    {
-      if (isPaused)
-        resumeRecording();
-      else
-        pauseRecording();
-    }
-  });
-}
+controls.style.display = 'block';
+showHelp();
+setDropZone(document.body);
+setPasteZone(document.body);
+document.body.addEventListener('keydown', function (e) {
+  if (isRecording && e.which === 32)
+  {
+    if (isPaused)
+      resumeRecording();
+    else
+      pauseRecording();
+  }
+});
+
 </script>
 </body>
 </html>
