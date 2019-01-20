@@ -1,11 +1,11 @@
 <html>
 <head>
-<title>DocuShow View</title>
+<title>{{title}}</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-title" content="DocuShow">
+<meta name="apple-mobile-web-app-title" content="{{title}}">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<link rel="stylesheet" href="/css/font-awesome.min.css">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 <link rel="stylesheet" type="text/css" href="/css/sweetalert.css">
 <style>
 
@@ -125,11 +125,10 @@ input[type=range]::-webkit-slider-thumb {
 
 </style>
 <script src="/js/sweetalert.min.js"></script>
-<script src="/js/recorder.min.js"></script>
 </head>
 <body>
 <div id='controls'>
-  <a id='logo' href="/">DocuShow</a>
+  <a id='logo' href="/">{{title}}</a>
   <div style='width:calc(100vw - 120px);text-align:right;display:inline-block'>
   <button id='createbutton' onclick='window.location="/"'>CREATE</button>
   </div>
@@ -138,7 +137,7 @@ input[type=range]::-webkit-slider-thumb {
 <div id='documentcontainer'>
 </div>
 <script>
-swal('Nothing here','Perhaps the author deleted this docushow or it expired','error');
+swal('Nothing here','Perhaps the author deleted it or it expired','error');
 </script>
 </body>
 </html>

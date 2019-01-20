@@ -4,8 +4,8 @@
 <meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,width=device-width,user-scalable=no" />
 <link rel="shortcut icon" type="image/png" href="/favicon.png"/>
 <meta charset="utf-8">
-<title>DocRecorder{% if (data.title) %} &ndash; {% endif %}{{data.title}}</title>
-<link rel="stylesheet" href="/css/font-awesome.min.css">
+<title>{{title}}{% if (data.title) %} &ndash; {% endif %}{{data.title}}</title>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 <link rel="stylesheet" type="text/css" href="/css/sweetalert.css">
 <style>
 
@@ -161,12 +161,12 @@ input[type=range]::-webkit-slider-thumb {
 </head>
 <body>
 <div id='controls'>
-  <a id='logo' href="/create">DocRecorder</a>
+  <a id='logo' href="/create">{{title}}</a>
   <button id='playbutton' disabled onclick='togglePlaying(this)'>&nbsp;<span class="fa fa-play"></span>&nbsp;</button>
   <input id="range" type="range" min="0" max="100" value="0" oninput="outputUpdate(value)"/>
   <output for="range" id="playcaption">00:00</output>
   <div class='linkbuttons'>
-    <button onclick='window.location="mailto:laurent@appblit.com?subject=DocRecorder"'>Contact</button>
+    <button onclick='window.location="mailto:laurent@appblit.com?subject={{title}}"'>Contact</button>
   </div>
 
 </div>
@@ -238,7 +238,7 @@ function promptDelete()
 {
   swal({
     title: "Are you sure?",
-    text: "You will not be able to recover this DocuShow!",
+    text: "You will not be able to undo!",
     type: "warning",
     showCancelButton: true,
     confirmButtonColor: "#DD6B55",
@@ -246,7 +246,7 @@ function promptDelete()
     closeOnConfirm: false
     },
     function(){
-      swal("Deleted!", "Your DocuShow has been deleted.", "success");
+      swal("Deleted!", "Your {{title}} has been deleted.", "success");
   });
 }
 
@@ -341,9 +341,9 @@ function loadSound()
       playbutton.disabled = false;
     });
     audio.src = "/uploads/{{data.room}}/audio.ogg";
-    if (window.localStorage.freshdocushow && window.localStorage.freshdocushow === '{{data.room}}')
+    if (window.localStorage.freshdocucast && window.localStorage.freshdocucast === '{{data.room}}')
     {
-      delete window.localStorage.freshdocushow;
+      delete window.localStorage.freshdocucast;
       swal({title:"Success!",text:"Ready to play and share<!--BR><BR><a target='_blank' href='" + window.location.href + "'>" + window.location.href + "</a-->",html:true,type:"success"});
     }
 }
