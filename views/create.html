@@ -11,6 +11,9 @@
 <link rel="stylesheet" href="/css/highlight.css">
 <style>
 
+.recording{background-color:red}
+.recording:hover{background-color:#e00}
+
 :root {
   --main-bg-color: #66f;
   --main-active-color: #66d;
@@ -106,11 +109,7 @@ position:relative;
   -moz-user-select: text;
   -webkit-user-select: text;
   -ms-user-select: text;
-
 }
-
-.recording{background-color:red}
-.recording:hover{background-color:#e00}
 
 input[type=range] {
   border-radius:6px;
@@ -152,6 +151,7 @@ input[type=range]::-webkit-slider-thumb {
   text-align:center
 }
 .roundbutton:hover{background-color:#88f}
+.roundbutton[disabled]:hover{background-color:#888}
 .roundbutton span{margin:0;padding:13px}
 .fileicon{font-size:24px;background-color:#da251c;color:white;padding:6px;margin:4px;border-radius:5px}
 .fileicon.word{background-color:#2a5696}
@@ -191,7 +191,7 @@ input[type=range]::-webkit-slider-thumb {
 <div id='controls'>
   <a id='logo' href="/create">{{title}}</a>
     <button class='roundbutton' id='recbutton' onclick='toggleRecording(this)'><span class="fa fa-microphone"></span></button>
-    <button class='roundbutton' id='savebutton' onclick='promptSave(this)'><span class="fa fa-save"></span></button>
+    <button class='roundbutton' disabled='true' id='savebutton' onclick='promptSave(this)'><span class="fa fa-save"></span></button>
 
     <input id="range" type="range" min="0" max="60" value="0"/>
     <output for="range" id="reccaption">00:00</output>
@@ -280,7 +280,6 @@ function mouseMove(e) {
   x |= 1;
   y |= 1;
   scrollTopPosition |= 1;
-  cursor.style.display = 'block';
   cursor.style.left = (e.pageX-16) + 'px';
   cursor.style.top = (e.pageY-16) + 'px';
   mouseCoords.push(delta,x,y,scrollTopPosition);
@@ -329,6 +328,8 @@ function toggleRecording()
   isRecording = !isRecording;
   if (isRecording)
   {
+    savebutton.disabled = true;
+    cursor.style.display = 'block';
     if (audioRecorder === null)
       initRecorder();
     else
@@ -336,7 +337,9 @@ function toggleRecording()
   }
   else
   {
+    cursor.style.display = 'none';
     stopRecording();
+    savebutton.disabled = false;
   }
 }
 
@@ -1044,15 +1047,6 @@ function sendGetRequest(url, f) {
 function convertUrl(url)
 {
   setTimeout(function(){swal('Ooops','Document format is not supported yet. Try text, images and PDFs','error')},500);
-}
-
-function togglePause(elem)
-{
-  isPaused = !isPaused;
-  if (isPaused)
-    pauseRecording();
-  else
-    resumeRecording();
 }
 
 controls.style.display = 'block';
